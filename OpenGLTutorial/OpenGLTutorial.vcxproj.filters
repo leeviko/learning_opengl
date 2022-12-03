@@ -37,5 +37,19 @@
     <ClInclude Include="Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="C:\Users\Leevi\Downloads\container.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="C:\Users\Leevi\Downloads\awesomeface.png">
+      <Filter>Source Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
