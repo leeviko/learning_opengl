@@ -4,12 +4,21 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.h"
 
 // Whenever window size changes, GLFW calls this function and fills in the proper arguments.
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow* window)
+{
+
 }
 
 int main()
@@ -43,10 +52,10 @@ int main()
 
 	float vertices[] = {
 		// Positions	     // Colors			 // Texture
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f, // top right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f, // bottom right
+		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
 	   -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-	   -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f  // top left 	
+	   -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 	
 	};
 
 	unsigned int indices[] = {
@@ -128,17 +137,24 @@ int main()
 	}
 	stbi_image_free(data);
 
-	float xPos = -0.5f;
-	char dir = 'r';
 
 	shaderProgram.use();
 	// Tell OpenGL for each sampler to which texture unit it belongs.
 	shaderProgram.setInt("texture1", 0);
 	shaderProgram.setInt("texture2", 1);
 
+	//glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+	//glm::mat4 trans = glm::mat4(1.0f);
+	//trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+	//vec = trans * vec;
+	//std::cout << vec.x << vec.y << vec.z << std::endl;
+
 	// Render loop
 	while (!glfwWindowShouldClose(window))
 	{
+
+		processInput(window);
+
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -147,35 +163,27 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textures[1]);
 
-		if (dir == 'l')
-		{
-			if (xPos <= -0.5f)
-			{
-				dir = 'r';
-			}
-			else {
-				xPos -= 0.005f;
-			}
-		}
-		if (dir == 'r')
-		{
-			if (xPos >= 0.5f)
-			{
-				dir = 'l';
-			}
-			else {
-				xPos += 0.005f;
-			}
-		}
+		// --- 1. Transformation
+		glm::mat4 trans = glm::mat4(1.0f); // Identity matrix
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f)); // Move to bottom right
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate
 
+		unsigned int transformLocation = glGetUniformLocation(shaderProgram.id, "transform");
 		shaderProgram.use();
 
-		shaderProgram.setFloat("horizontalPos", xPos);
+		glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans));
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		
+		// --- 2. Transformation
+		trans = glm::mat4(1.0f); // Identity matrix
+		trans = glm::translate(trans, glm::vec3((float)sin(glfwGetTime()), 0.5f, 0.0f)); // Move to bottom right
+		float scaleAmount = (float)sin(glfwGetTime());
+		trans = glm::scale(trans, glm::vec3(scaleAmount, scaleAmount, scaleAmount)); // Scale
+		glUniformMatrix4fv(transformLocation, 1, GL_FALSE, &trans[0][0]);
 
-
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// Swaps the color buffer that is used to render to during this render iteration.
 		glfwSwapBuffers(window);
 		// Check if any events are triggered, updates the window state, 
