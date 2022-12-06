@@ -14,6 +14,8 @@
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
+
 // Whenever window size changes, GLFW calls this function and fills in the proper arguments.
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -71,8 +73,15 @@ int main()
 	GLCall(glGenVertexArrays(1, &VAO));
 	GLCall(glBindVertexArray(VAO));
 
-
+	VertexArray va;
 	VertexBuffer vb(vertices, sizeof(vertices));
+
+	VertexBufferLayout layout;
+	layout.Push<float>(3);
+	layout.Push<float>(3);
+	layout.Push<float>(2);
+	va.AddBuffer(vb, layout);
+
 	IndexBuffer ib(indices, 6);
 
 	// Pos
@@ -174,7 +183,7 @@ int main()
 
 		GLCall(glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans)));
 
-		GLCall(glBindVertexArray(VAO));
+		va.Bind();
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
 		// --- 2. Transformation
 		trans = glm::mat4(1.0f); // Identity matrix
@@ -196,4 +205,3 @@ int main()
 	glfwTerminate();
 	return 0;
 }
-
