@@ -3,18 +3,14 @@
 #include <iostream>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "Shader.h"
+#include "MyMath.h"
 
 #include "Renderer.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
+#include "Shader.h"
 
 // Whenever window size changes, GLFW calls this function and fills in the proper arguments.
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -56,11 +52,11 @@ int main()
   Shader shaderProgram("src/shaders/shader.vertex", "src/shaders/shader.frag");
 
   float vertices[] = {
-      // Positions	     // Colors			 // Texture
-      0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
-      0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+       // Positions	      // Colors			    // Texture
+       0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
+       0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
       -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-      -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
+      -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
   };
 
   unsigned int indices[] = {
@@ -121,7 +117,7 @@ int main()
     std::cout << "Failed to load texture 1" << std::endl;
   }
   stbi_image_free(data);
-
+  shaderProgram.Bind();
   // Texture 2
 
   GLCall(glBindTexture(GL_TEXTURE_2D, textures[1]));
@@ -144,7 +140,6 @@ int main()
   }
   stbi_image_free(data);
 
-  shaderProgram.use();
   // Tell OpenGL for each sampler to which texture unit it belongs.
   shaderProgram.setInt("texture1", 0);
   shaderProgram.setInt("texture2", 1);
@@ -173,21 +168,18 @@ int main()
     glm::mat4 trans = glm::mat4(1.0f);                                             // Identity matrix
     trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));                   // Move to bottom right
     trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate
-
-    unsigned int transformLocation = glGetUniformLocation(shaderProgram.id, "transform");
-    shaderProgram.use();
-
-    GLCall(glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans)));
+    shaderProgram.setUniformMat4f("transform", trans);
 
     va.Bind();
+    shaderProgram.Bind();
     GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
     // --- 2. Transformation
     trans = glm::mat4(1.0f);                                                         // Identity matrix
-    trans = glm::translate(trans, glm::vec3((float)sin(glfwGetTime()), 0.5f, 0.0f)); // Move to bottom right
-    float scaleAmount = (float)sin(glfwGetTime());
+    trans = glm::translate(trans, glm::vec3(sin((float)glfwGetTime()), 0.5f, 0.0f)); // Move to bottom right
+    float scaleAmount = sin((float)glfwGetTime());
     trans = glm::scale(trans, glm::vec3(scaleAmount, scaleAmount, scaleAmount)); // Scale
-    GLCall(glUniformMatrix4fv(transformLocation, 1, GL_FALSE, &trans[0][0]));
-
+    
+    shaderProgram.setUniformMat4f("transform", trans);
     GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
     // Swaps the color buffer that is used to render to during this render iteration.
     glfwSwapBuffers(window);
@@ -195,8 +187,6 @@ int main()
     // and calls the corresponding functions.
     glfwPollEvents();
   }
-
-  glDeleteVertexArrays(1, &VAO);
 
   glfwTerminate();
   return 0;
