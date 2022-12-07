@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.exe",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
