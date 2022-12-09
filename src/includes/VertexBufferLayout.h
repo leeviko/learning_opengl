@@ -2,7 +2,8 @@
 
 #include <vector>
 #include <stdexcept>
-#include "Renderer.h"
+#include <glad/glad.h>
+#include "Macros.h"
 
 struct VertexBufferElement
 {

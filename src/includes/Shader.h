@@ -19,8 +19,8 @@ public:
   Shader(const std::string &vertexPath, const std::string &fragmentPath);
   ~Shader();
 
-  void Shader::Bind();
-  void Shader::Unbind();
+  void Shader::Bind() const;
+  void Shader::Unbind() const;
   // Utility uniform functions
   void setBool(const std::string &name, bool value) const;
   void setInt(const std::string &name, int value) const;

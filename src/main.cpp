@@ -149,15 +149,12 @@ int main()
   // trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
   // vec = trans * vec;
   // std::cout << vec.x << vec.y << vec.z << std::endl;
-
+  Renderer renderer;
   // Render loop
   while (!glfwWindowShouldClose(window))
   {
-
+    renderer.Clear();
     processInput(window);
-
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     GLCall(glActiveTexture(GL_TEXTURE0));
     GLCall(glBindTexture(GL_TEXTURE_2D, textures[0]));
@@ -168,19 +165,19 @@ int main()
     glm::mat4 trans = glm::mat4(1.0f);                                             // Identity matrix
     trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));                   // Move to bottom right
     trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate
+    
+    shaderProgram.Bind();
     shaderProgram.setUniformMat4f("transform", trans);
 
-    va.Bind();
-    shaderProgram.Bind();
-    GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-    // --- 2. Transformation
+    renderer.Draw(va, ib, shaderProgram);
+    // --- 2. Transformationd
     trans = glm::mat4(1.0f);                                                         // Identity matrix
     trans = glm::translate(trans, glm::vec3(sin((float)glfwGetTime()), 0.5f, 0.0f)); // Move to bottom right
     float scaleAmount = sin((float)glfwGetTime());
     trans = glm::scale(trans, glm::vec3(scaleAmount, scaleAmount, scaleAmount)); // Scale
     
     shaderProgram.setUniformMat4f("transform", trans);
-    GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+    renderer.Draw(va, ib, shaderProgram);
     // Swaps the color buffer that is used to render to during this render iteration.
     glfwSwapBuffers(window);
     // Check if any events are triggered, updates the window state,

@@ -8,4 +8,4 @@ SET links=/link glfw3_mt.lib opengl32.lib kernel32.lib user32.lib gdi32.lib shel
 SET defines=/D DEBUG
 
 echo "Building main..."
-cl /EHsc %includes% %defines% /Fobuild\ /Femain.exe src/*.c* %links%
+cl /nologo /EHsc %includes% %defines% /Fobuild\ /Femain.exe src/*.c* %links%
