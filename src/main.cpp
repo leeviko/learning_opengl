@@ -1,8 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "MyMath.h"
 
 #include "Renderer.h"
@@ -11,6 +9,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 // Whenever window size changes, GLFW calls this function and fills in the proper arguments.
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -52,11 +51,11 @@ int main()
   Shader shaderProgram("src/shaders/shader.vertex", "src/shaders/shader.frag");
 
   float vertices[] = {
-       // Positions	      // Colors			    // Texture
-       0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
-       0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+      // Positions	      // Colors			    // Texture
+      0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
+      0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
       -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-      -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
+      -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
   };
 
   unsigned int indices[] = {
@@ -88,67 +87,13 @@ int main()
   GLCall(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(6 * sizeof(float))));
   GLCall(glEnableVertexAttribArray(2));
 
-  // --- Textures
-  stbi_set_flip_vertically_on_load(true);
-
-  unsigned int textures[2];
-  GLCall(glGenTextures(2, textures));
-
-  // Texture 1
-  GLCall(glBindTexture(GL_TEXTURE_2D, textures[0]));
-
-  // Texture parameters
-  // Texture wrappings
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-  // Texture filterings
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-  int width, height, nrChannels;
-  unsigned char *data = stbi_load("C:/Users/Leevi/Downloads/container.jpg", &width, &height, &nrChannels, 0);
-  if (data)
-  {
-    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
-    GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-  }
-  else
-  {
-    std::cout << "Failed to load texture 1" << std::endl;
-  }
-  stbi_image_free(data);
   shaderProgram.Bind();
-  // Texture 2
+  // --- Textures
 
-  GLCall(glBindTexture(GL_TEXTURE_2D, textures[1]));
+  Texture texture1("C:/Users/Leevi/Downloads/container.jpg");
 
-  // Texture parameters
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT));
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT));
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+  shaderProgram.setUniform1i("texture1", 0);
 
-  data = stbi_load("C:/Users/Leevi/Downloads/awesomeface.png", &width, &height, &nrChannels, 0);
-  if (data)
-  {
-    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
-    GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-  }
-  else
-  {
-    std::cout << "Failed to load texture 2" << std::endl;
-  }
-  stbi_image_free(data);
-
-  // Tell OpenGL for each sampler to which texture unit it belongs.
-  shaderProgram.setInt("texture1", 0);
-  shaderProgram.setInt("texture2", 1);
-
-  // glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
-  // glm::mat4 trans = glm::mat4(1.0f);
-  // trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
-  // vec = trans * vec;
-  // std::cout << vec.x << vec.y << vec.z << std::endl;
   Renderer renderer;
   // Render loop
   while (!glfwWindowShouldClose(window))
@@ -156,28 +101,18 @@ int main()
     renderer.Clear();
     processInput(window);
 
-    GLCall(glActiveTexture(GL_TEXTURE0));
-    GLCall(glBindTexture(GL_TEXTURE_2D, textures[0]));
-    GLCall(glActiveTexture(GL_TEXTURE1));
-    GLCall(glBindTexture(GL_TEXTURE_2D, textures[1]));
+    texture1.Bind(0);
 
     // --- 1. Transformation
     glm::mat4 trans = glm::mat4(1.0f);                                             // Identity matrix
     trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));                   // Move to bottom right
     trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate
-    
+
     shaderProgram.Bind();
     shaderProgram.setUniformMat4f("transform", trans);
 
     renderer.Draw(va, ib, shaderProgram);
-    // --- 2. Transformationd
-    trans = glm::mat4(1.0f);                                                         // Identity matrix
-    trans = glm::translate(trans, glm::vec3(sin((float)glfwGetTime()), 0.5f, 0.0f)); // Move to bottom right
-    float scaleAmount = sin((float)glfwGetTime());
-    trans = glm::scale(trans, glm::vec3(scaleAmount, scaleAmount, scaleAmount)); // Scale
-    
-    shaderProgram.setUniformMat4f("transform", trans);
-    renderer.Draw(va, ib, shaderProgram);
+
     // Swaps the color buffer that is used to render to during this render iteration.
     glfwSwapBuffers(window);
     // Check if any events are triggered, updates the window state,
