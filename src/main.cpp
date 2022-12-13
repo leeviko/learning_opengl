@@ -81,9 +81,6 @@ int main()
 
   IndexBuffer ib(indices, 6);
 
-  glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-  glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-
   // Pos
   GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)0));
   GLCall(glEnableVertexAttribArray(0));
@@ -108,9 +105,13 @@ int main()
   ImGui_ImplOpenGL3_Init("#version 330 core");
   ImGui::StyleColorsClassic();
 
+  glm::mat4 proj = glm::perspective(glm::radians(45.0f), 960.0f / 540.0f, 0.1f, 300.0f);
+  glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -200.0f));
+
   glm::vec3 translationA(200, 200, 0);
   glm::vec3 translationB(400, 200, 0);
 
+  glEnable(GL_DEPTH_TEST);
   // Render loop
   while (!glfwWindowShouldClose(window))
   {
@@ -124,6 +125,7 @@ int main()
     // --- 1. Transformation
     {
       glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+      model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
       glm::mat4 mvp = proj * view * model;
       shaderProgram.Bind();
       shaderProgram.setUniformMat4f("u_MVP", mvp);
